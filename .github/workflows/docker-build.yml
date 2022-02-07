@@ -37,8 +37,8 @@ jobs:
         with:
           image: ${{ env.docker-image }}
           tags: ${{ env.docker-tag }} ${{ github.sha }}
-          registry: ghcr.io/shitcorp
-          username: shitcorp
+          registry: ghcr.io/MeerBiene
+          username: MeerBiene
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print image url
