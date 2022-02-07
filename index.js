@@ -133,6 +133,7 @@ const requestHandler = (req, res) => {
   });
 
   // https://http.cat/204
+  // 204 = no content
   res.writeHead(204);
   res.end();
 };

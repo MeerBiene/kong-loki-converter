@@ -6,6 +6,7 @@ Simple node.js server to convert the json log messages produced by [Kong](https:
 <details>
 <summary>Kong Log Messages</summary>
 
+
 ```json
 {
   "latencies": {
