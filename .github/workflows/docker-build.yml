@@ -9,7 +9,7 @@ on:
 
 env:
   docker-image: kong-loki-converter
-  docker-tag: latest
+  docker-tag: latest ${{ github.sha }}
 
 jobs:
   build:
@@ -37,8 +37,8 @@ jobs:
         with:
           image: ${{ env.docker-image }}
           tags: ${{ env.docker-tag }} ${{ github.sha }}
-          registry: ghcr.io
-          username: MeerBiene
+          registry: ghcr.io/${{ github.repository_owner }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print image url
