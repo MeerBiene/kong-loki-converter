@@ -1,0 +1,45 @@
+name: docker
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+
+env:
+  docker-image: kong-loki-converter
+  docker-tag: latest
+
+jobs:
+  build:
+    name: Build Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # fetch all commits to get last updated time or other git log info
+          fetch-depth: 0
+
+      - name: Install DockerSlim
+        id: install-docker-slim
+        run: |
+          curl -L -O https://downloads.dockerslim.com/releases/latest/dist_linux.tar.gz
+          tar -zxvf dist_linux.tar.gz
+      - name: Build Container
+        id: build-image
+        run: |
+          ./dist_linux/docker-slim build --dockerfile ./Dockerfile --dockerfile-context $GITHUB_WORKSPACE --tag ${{ env.docker-image }}:${{ env.docker-tag }} --tag ${{ env.docker-image }}:${{ github.sha }} --http-probe-off -exec echo "Continue" --continue-after exec
+      - name: Push To ghcr.io
+        id: push-to-ghcr
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ env.docker-image }}
+          tags: ${{ env.docker-tag }} ${{ github.sha }}
+          registry: ghcr.io/shitcorp
+          username: shitcorp
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print image url
+        run: echo "Image pushed to ${{ steps.push-to-ghcr.outputs.registry-paths }}"
