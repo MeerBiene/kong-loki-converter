@@ -40,6 +40,8 @@ jobs:
           registry: ghcr.io/${{ github.repository_owner }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          extra-args: |
+            --disable-content-trust
 
       - name: Print image url
         run: echo "Image pushed to ${{ steps.push-to-ghcr.outputs.registry-paths }}"
