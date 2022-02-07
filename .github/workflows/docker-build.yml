@@ -8,8 +8,11 @@ on:
       - '**.md'
 
 env:
-  docker-image: kong-loki-converter
-  docker-tag: latest ${{ github.sha }}
+  IMAGE_NAME: kong-loki-converter
+  IMAGE_TAGS: latest ${{ github.sha }}
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
 
 jobs:
   build:
@@ -21,25 +24,26 @@ jobs:
         with:
           # fetch all commits to get last updated time or other git log info
           fetch-depth: 0
-
-      - name: Install DockerSlim
-        id: install-docker-slim
-        run: |
-          curl -L -O https://downloads.dockerslim.com/releases/latest/dist_linux.tar.gz
-          tar -zxvf dist_linux.tar.gz
-      - name: Build Container
-        id: build-image
-        run: |
-          ./dist_linux/docker-slim build --dockerfile ./Dockerfile --dockerfile-context $GITHUB_WORKSPACE --tag ${{ env.docker-image }}:${{ env.docker-tag }} --tag ${{ env.docker-image }}:${{ github.sha }} --http-probe-off -exec echo "Continue" --continue-after exec
+      
+      - name: Build Image
+        id: build_image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.IMAGE_TAGS }}
+          containerfiles: |
+            ./Dockerfile
+          oci: true
+      
       - name: Push To ghcr.io
         id: push-to-ghcr
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: ${{ env.docker-image }}
-          tags: ${{ env.docker-tag }} ${{ github.sha }}
-          registry: ghcr.io/${{ github.repository_owner }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          image: ${{ steps.build_image.outputs.image }}
+          tags: ${{ steps.build_image.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
           extra-args: |
             --disable-content-trust
 
